@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boutique_custom"
+version = "0.1.0"
+description = "Minimal ERPNext custom app for a clothing retail MVP"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "tleguede-works", email = "you@example.com" }
+]
+dependencies = []
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["boutique_custom*"]
+
+[tool.bench.frappe-dependencies]
+frappe = ">=16.0.0-dev,<17.0.0"
