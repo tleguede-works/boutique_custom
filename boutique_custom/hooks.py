@@ -48,4 +48,8 @@ fixtures = [
             ]
         ],
     },
+    {
+        "dt": "Translation",
+        "filters": [["language", "=", "fr"]],
+    },
 ]
