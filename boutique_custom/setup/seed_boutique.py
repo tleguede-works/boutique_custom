@@ -368,17 +368,29 @@ def _ensure_item_group(name: str, parent: str | None, log, force: bool):
 	log(f"created: Item Group {name}")
 
 
+def _abbr_for_attribute_value(value: str) -> str:
+	"""ERPNext 16 requires abbr on each Item Attribute Value row."""
+	v = value.strip()
+	if len(v) <= 4:
+		return v
+	return v[:3].upper()
+
+
 def _ensure_item_attribute(name: str, values: list[str], log, force: bool):
 	if frappe.db.exists("Item Attribute", name) and not force:
 		log(f"skip: Item Attribute {name}")
 		return
 	if frappe.db.exists("Item Attribute", name):
-		return
+		if not force:
+			return
+		frappe.delete_doc("Item Attribute", name, force=1)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Item Attribute",
 			"attribute_name": name,
-			"item_attribute_values": [{"attribute_value": v} for v in values],
+			"item_attribute_values": [
+				{"attribute_value": v, "abbr": _abbr_for_attribute_value(v)} for v in values
+			],
 		}
 	)
 	doc.insert(ignore_permissions=True)
