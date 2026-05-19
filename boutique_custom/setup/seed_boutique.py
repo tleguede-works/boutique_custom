@@ -77,8 +77,11 @@ def _set_language_fr(log, force: bool):
 def _fix_company_stock_accounts(company: str, log, force: bool):
 	company_doc = frappe.get_doc("Company", company)
 	_tag_syscohada_accounts(company, log)
-	if force:
-		company_doc.update_default_account = 1
+	if not force and company_doc.default_inventory_account:
+		log("skip: Company stock accounts already set")
+		return
+	# Company.validate() normally sets this; required when calling set_default_accounts via bench execute
+	company_doc.update_default_account = True
 	company_doc.set_default_accounts()
 	company_doc.save(ignore_permissions=True)
 	if company_doc.default_inventory_account:
@@ -236,6 +239,28 @@ def _first_leaf_account(company: str, root_type: str) -> str | None:
 	)
 
 
+def _default_cost_center(company: str) -> str | None:
+	return frappe.db.get_value("Company", company, "cost_center") or frappe.db.get_value(
+		"Cost Center", {"company": company, "is_group": 0}, "name"
+	)
+
+
+def _default_write_off_account(company: str) -> str | None:
+	for field in ("write_off_account", "stock_adjustment_account", "default_expense_account"):
+		account = frappe.db.get_value("Company", company, field)
+		if account:
+			return account
+	for hint in ("6031", "6015", "Charges", "Frais"):
+		account = frappe.db.get_value(
+			"Account",
+			{"company": company, "is_group": 0, "name": ["like", f"%{hint}%"]},
+			"name",
+		)
+		if account:
+			return account
+	return None
+
+
 def _ensure_pos_profile(company: str, warehouse: str, profile_name: str, log, force: bool):
 	if frappe.db.exists("POS Profile", profile_name) and not force:
 		log(f"skip: POS Profile {profile_name}")
@@ -246,6 +271,12 @@ def _ensure_pos_profile(company: str, warehouse: str, profile_name: str, log, fo
 		frappe.db.get_value("Price List", {"selling": 1, "enabled": 1}, "name")
 		or "Standard Selling"
 	)
+	write_off_account = _default_write_off_account(company)
+	write_off_cost_center = _default_cost_center(company)
+	if not write_off_account or not write_off_cost_center:
+		frappe.throw(
+			_("POS Profile requires write-off account and cost center. Check Company defaults.")
+		)
 
 	if frappe.db.exists("POS Profile", profile_name):
 		doc = frappe.get_doc("POS Profile", profile_name)
@@ -261,6 +292,8 @@ def _ensure_pos_profile(company: str, warehouse: str, profile_name: str, log, fo
 
 	doc.company = company
 	doc.warehouse = warehouse
+	doc.write_off_account = write_off_account
+	doc.write_off_cost_center = write_off_cost_center
 	if walk_in:
 		doc.customer = walk_in
 	doc.payments = []
