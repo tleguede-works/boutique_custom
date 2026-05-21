@@ -5,7 +5,9 @@ app_description = "Low-code ERPNext customizations for a clothing retail MVP"
 app_email = "you@example.com"
 app_license = "MIT"
 
-app_include_js = "/assets/boutique_custom/js/item_list_labels.js"
+doctype_list_js = {
+	"Item": "public/js/item_list_labels.js",
+}
 
 doc_events = {
 	"Item": {
