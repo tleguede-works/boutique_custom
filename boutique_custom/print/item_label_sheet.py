@@ -65,7 +65,7 @@ def _collect_items(item_codes: list[str]) -> list[dict]:
 @frappe.whitelist()
 def download(items=None, columns: int = 3) -> None:
 	"""Génère un PDF grille pour les articles sélectionnés (codes variante)."""
-	frappe.only_for("System Manager", "Stock Manager", "Stock User")
+	frappe.only_for(("System Manager", "Stock Manager", "Stock User"))
 
 	if isinstance(items, str):
 		items = json.loads(items)

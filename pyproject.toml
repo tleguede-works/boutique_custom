@@ -11,7 +11,7 @@ requires-python = ">=3.11"
 authors = [
   { name = "tleguede-works", email = "you@example.com" }
 ]
-dependencies = []
+dependencies = ["python-barcode>=0.15.1"]
 
 [tool.setuptools]
 include-package-data = true
