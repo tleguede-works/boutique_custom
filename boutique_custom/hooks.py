@@ -1,9 +1,17 @@
 app_name = "boutique_custom"
 app_title = "Boutique Custom"
-app_publisher = "tleguede-works"
+app_publisher = "Your Name"
 app_description = "Low-code ERPNext customizations for a clothing retail MVP"
 app_email = "you@example.com"
 app_license = "MIT"
+
+app_include_js = "/assets/boutique_custom/js/item_list_labels.js"
+
+doc_events = {
+	"Item": {
+		"before_save": "boutique_custom.item_autofill.autofill_barcode",
+	},
+}
 
 fixtures = [
     {
